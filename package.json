@@ -1,0 +1,9 @@
+{
+  "name": "stokvel-cooperative",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
+    "api": "dotnet run --project src/Stokvel.Api/Stokvel.Api.csproj --launch-profile http"
+  }
+}

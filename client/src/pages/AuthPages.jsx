@@ -58,14 +58,16 @@ export function LoginPage() {
   return (
     <div className="auth-screen">
       <form className="auth-card form" onSubmit={submit}>
-        <div className="eyebrow">STOKVEL COOPERATIVE</div>
-        <h1>Welcome back</h1>
-        <p>Sign in to manage savings, instalments and borrowing.</p>
+        <div className="auth-brand">
+          <img className="auth-logo" src="/pkvela-logo.png?v=2" alt="pkvela Cooperative" />
+          <h1>Welcome back</h1>
+          <p>Sign in to manage savings, instalments and borrowing.</p>
+        </div>
         {error && <div className="alert">{error}</div>}
         <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
         <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>
         <button className="btn">Sign in</button>
-        <p className="muted">New here? <Link to="/register">Create an account</Link></p>
+        <p className="muted auth-foot">New here? <Link to="/register">Create an account</Link></p>
       </form>
     </div>
   )

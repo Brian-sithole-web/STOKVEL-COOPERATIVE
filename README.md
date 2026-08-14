@@ -10,7 +10,16 @@ Architecture notes: `docs/ARCHITECTURE.md`
 
 ## Run the platform
 
-Terminal 1 — API:
+From the repo root you can use:
+
+```powershell
+npm run api
+npm run dev
+```
+
+Or run each project in its own folder.
+
+**Terminal 1 — API**
 
 ```powershell
 cd src/Stokvel.Api
@@ -20,7 +29,7 @@ dotnet run --launch-profile http
 API: http://localhost:5184  
 Swagger: http://localhost:5184/swagger
 
-Terminal 2 — React app:
+**Terminal 2 — React app** (the frontend lives in `client`, not the repo root)
 
 ```powershell
 cd client
