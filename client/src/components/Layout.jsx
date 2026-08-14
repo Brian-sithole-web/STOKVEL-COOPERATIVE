@@ -48,11 +48,7 @@ export default function Layout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="mark">SC</div>
-          <div>
-            <strong>STOKVEL</strong>
-            <span>COOPERATIVE</span>
-          </div>
+          <img className="brand-logo" src="/pkvela-logo.png?v=2" alt="pkvela Cooperative" />
         </div>
 
         {user?.memberships?.length > 0 && (
@@ -74,11 +70,15 @@ export default function Layout() {
         </nav>
 
         <div className="sidebar-foot">
-          <div>
-            <strong>{user?.fullName}</strong>
-            <small>{admin ? 'Platform Administrator' : statusRole(membership?.role)}</small>
+          <div className="user-card">
+            <div className="user-meta">
+              <strong>{user?.fullName}</strong>
+              <small>{admin ? 'Platform Administrator' : statusRole(membership?.role)}</small>
+            </div>
+            <button type="button" className="btn-signout" onClick={() => { logout(); navigate('/login') }}>
+              Sign out
+            </button>
           </div>
-          <button className="linkish" onClick={() => { logout(); navigate('/login') }}>Sign out</button>
         </div>
       </aside>
       <main className="content">
