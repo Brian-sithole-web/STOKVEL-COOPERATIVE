@@ -1,4 +1,4 @@
-cd src/Stokvel.Apiusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stokvel.Application.Dtos;
 using Stokvel.Application.Services;
