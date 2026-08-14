@@ -1,0 +1,6 @@
+@Stokvel.Api_HostAddress = http://localhost:5232
+
+GET {{Stokvel.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,3 +1,8 @@
 <Solution>
-  <Project Path="STOKVEL COOPERATIVE/STOKVEL COOPERATIVE.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Stokvel.Api/Stokvel.Api.csproj" />
+    <Project Path="src/Stokvel.Application/Stokvel.Application.csproj" />
+    <Project Path="src/Stokvel.Domain/Stokvel.Domain.csproj" />
+    <Project Path="src/Stokvel.Infrastructure/Stokvel.Infrastructure.csproj" />
+  </Folder>
 </Solution>
