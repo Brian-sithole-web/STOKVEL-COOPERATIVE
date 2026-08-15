@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { isOfficer } from '../format'
+import { Icon } from '../icons'
 
 export default function Layout() {
   const { user, groupId, selectGroup, logout, membership } = useAuth()
@@ -9,37 +10,37 @@ export default function Layout() {
   const officer = admin || isOfficer(membership?.role)
 
   const platformLinks = [
-    ['/', 'Dashboard'],
-    ['/stokvels', 'Stokvels'],
-    ['/loans', 'Loans'],
-    ['/reports', 'Reports'],
-    ['/notifications', 'Notifications'],
-    ['/audit', 'Audit logs'],
-    ['/settings', 'Settings'],
+    ['/', 'Dashboard', 'dashboard'],
+    ['/stokvels', 'Stokvels', 'users'],
+    ['/loans', 'Loans', 'loans'],
+    ['/reports', 'Reports', 'reports'],
+    ['/notifications', 'Notifications', 'bell'],
+    ['/audit', 'Audit logs', 'clipboard'],
+    ['/settings', 'Settings', 'settings'],
   ]
 
   const groupLinks = [
-    ['/', 'Dashboard'],
-    ['/stokvels', 'My Stokvels'],
-    ['/members', 'Members'],
-    ['/contributions', 'Contributions'],
-    ['/instalments', 'Monthly instalments'],
-    ['/savings', 'Group savings'],
-    ['/group-loans', 'Group loans'],
-    ['/member-loans', 'Member loans'],
-    ['/transactions', 'Transactions'],
-    ['/reports', 'Reports'],
-    ['/notifications', 'Notifications'],
+    ['/', 'Dashboard', 'dashboard'],
+    ['/stokvels', 'My Stokvels', 'users'],
+    ['/members', 'Members', 'user'],
+    ['/contributions', 'Contributions', 'deposit'],
+    ['/instalments', 'Monthly instalments', 'calendar'],
+    ['/savings', 'Group savings', 'piggy'],
+    ['/group-loans', 'Group loans', 'landmark'],
+    ['/member-loans', 'Member loans', 'wallet'],
+    ['/transactions', 'Transactions', 'loans'],
+    ['/reports', 'Reports', 'reports'],
+    ['/notifications', 'Notifications', 'bell'],
   ]
 
   const memberLinks = [
-    ['/', 'Dashboard'],
-    ['/stokvels', 'My Stokvels'],
-    ['/contributions', 'My contributions'],
-    ['/instalments', 'My instalments'],
-    ['/member-loans', 'My loans'],
-    ['/transactions', 'My transactions'],
-    ['/notifications', 'Notifications'],
+    ['/', 'Dashboard', 'dashboard'],
+    ['/stokvels', 'My Stokvels', 'users'],
+    ['/contributions', 'My contributions', 'deposit'],
+    ['/instalments', 'My instalments', 'calendar'],
+    ['/member-loans', 'My loans', 'wallet'],
+    ['/transactions', 'My transactions', 'loans'],
+    ['/notifications', 'Notifications', 'bell'],
   ]
 
   const links = admin ? platformLinks : officer ? groupLinks : memberLinks
@@ -64,8 +65,11 @@ export default function Layout() {
         )}
 
         <nav>
-          {links.map(([to, label]) => (
-            <NavLink key={to} to={to} end={to === '/'}>{label}</NavLink>
+          {links.map(([to, label, icon]) => (
+            <NavLink key={to} to={to} end={to === '/'}>
+              <Icon name={icon} size={18} />
+              <span>{label}</span>
+            </NavLink>
           ))}
         </nav>
 
@@ -76,7 +80,8 @@ export default function Layout() {
               <small>{admin ? 'Platform Administrator' : statusRole(membership?.role)}</small>
             </div>
             <button type="button" className="btn-signout" onClick={() => { logout(); navigate('/login') }}>
-              Sign out
+              <span>Sign out</span>
+              <Icon name="logout" size={16} />
             </button>
           </div>
         </div>
