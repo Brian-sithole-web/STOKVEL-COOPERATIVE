@@ -26,7 +26,7 @@ export default function Dashboard() {
 function StatCard({ label, value, icon, variant }) {
   return (
     <div className={`stat-card ${variant || ''}`.trim()}>
-      <div className="stat-icon"><Icon name={icon} size={18} /></div>
+      <div className="stat-icon"><Icon name={icon} size={14} /></div>
       <div className="stat-body">
         <div className="label">{label}</div>
         <div className="value">{value}</div>
@@ -71,7 +71,7 @@ function PlatformDash() {
           <h1>Platform overview</h1>
           <p>All registered Stokvels, savings and borrowing across the cooperative.</p>
         </div>
-        <Link className="btn" to="/stokvels"><Icon name="users" size={18} /> All Stokvel groups</Link>
+        <Link className="btn" to="/stokvels"><Icon name="users" size={16} /> All Stokvel groups</Link>
       </div>
 
       <div className="dash-metrics">
@@ -136,19 +136,19 @@ function PlatformDash() {
           <div className="panel-head"><h2>Quick actions</h2></div>
           <div className="quick-grid">
             <Link className="quick-tile" to="/stokvels/new">
-              <span className="stat-icon"><Icon name="plus" size={22} /></span>
+              <span className="stat-icon"><Icon name="plus" size={18} /></span>
               Create Stokvel group
             </Link>
             <Link className="quick-tile" to="/contributions">
-              <span className="stat-icon"><Icon name="deposit" size={22} /></span>
+              <span className="stat-icon"><Icon name="deposit" size={18} /></span>
               Record deposit
             </Link>
             <Link className="quick-tile" to="/loans">
-              <span className="stat-icon"><Icon name="check" size={22} /></span>
+              <span className="stat-icon"><Icon name="check" size={18} /></span>
               Approve loan
             </Link>
             <Link className="quick-tile" to="/reports">
-              <span className="stat-icon"><Icon name="reports" size={22} /></span>
+              <span className="stat-icon"><Icon name="reports" size={18} /></span>
               View reports
             </Link>
           </div>
@@ -175,7 +175,7 @@ function HealthChart({ period }) {
       ? [24, 28, 26, 36, 42, 38, 50, 56]
       : [22, 30, 26, 38, 34, 48, 44, 58, 52, 66, 62, 74]
   const w = 420
-  const h = 168
+  const h = 112
   const pad = 16
   const max = Math.max(...series)
   const coords = series.map((v, i) => {
