@@ -70,6 +70,11 @@ export function AuthProvider({ children }) {
       setToken(null)
       setUser(null)
     },
+    async refresh() {
+      const me = await api.get('/api/auth/me')
+      setUser(me)
+      return me
+    },
   }), [user, ready, groupId])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -20,3 +20,7 @@ export function officerRoles() {
 export function isOfficer(role) {
   return officerRoles().includes(role)
 }
+
+export function isInactiveGroup(status) {
+  return Boolean(status) && status !== 'Active'
+}

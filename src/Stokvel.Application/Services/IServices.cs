@@ -32,6 +32,7 @@ public interface IGroupService
     Task ApproveAndActivateAsync(Guid groupId, CancellationToken ct = default);
     Task SuspendAsync(Guid groupId, string reason, CancellationToken ct = default);
     Task CloseAsync(Guid groupId, CancellationToken ct = default);
+    Task DeleteInactiveAsync(Guid groupId, CancellationToken ct = default);
     Task<IReadOnlyList<MemberDto>> GetMembersAsync(Guid groupId, CancellationToken ct = default);
 }
 

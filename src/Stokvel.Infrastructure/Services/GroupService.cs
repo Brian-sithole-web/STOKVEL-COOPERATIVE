@@ -267,6 +267,53 @@ public sealed class GroupService : AppServiceBase, IGroupService
         await Db.SaveChangesAsync(ct);
     }
 
+    public async Task DeleteInactiveAsync(Guid groupId, CancellationToken ct = default)
+    {
+        if (!Current.IsPlatformAdmin)
+            throw new ForbiddenException("Only the Platform Administrator can delete a Stokvel.");
+
+        var group = await Db.StokvelGroups.AsNoTracking().FirstOrDefaultAsync(g => g.Id == groupId, ct)
+                    ?? throw new NotFoundException("Stokvel group not found.");
+
+        if (group.Status == GroupStatus.Active)
+            throw new BusinessRuleException("GROUP_ACTIVE", "An active Stokvel cannot be deleted. Suspend or close it first.");
+
+        var outstanding = await OutstandingLoansAsync(groupId, ct);
+        if (outstanding > 0)
+            throw new BusinessRuleException("OUTSTANDING_LOANS", "This Stokvel still has outstanding loans and cannot be deleted.");
+
+        await using var tx = await Db.Database.BeginTransactionAsync(ct);
+
+        var memberLoanIds = Db.MemberLoans.Where(l => l.GroupId == groupId).Select(l => l.Id);
+        await Db.MemberLoanApprovals.Where(a => memberLoanIds.Contains(a.MemberLoanId)).ExecuteDeleteAsync(ct);
+        await Db.MemberLoanRepayments.Where(r => memberLoanIds.Contains(r.MemberLoanId)).ExecuteDeleteAsync(ct);
+        await Db.MemberLoans.Where(l => l.GroupId == groupId).ExecuteDeleteAsync(ct);
+
+        var groupLoanIds = Db.GroupLoans.Where(l => l.GroupId == groupId).Select(l => l.Id);
+        await Db.GroupLoanApprovals.Where(a => groupLoanIds.Contains(a.GroupLoanId)).ExecuteDeleteAsync(ct);
+        await Db.GroupLoanRepayments.Where(r => groupLoanIds.Contains(r.GroupLoanId)).ExecuteDeleteAsync(ct);
+        await Db.GroupLoans.Where(l => l.GroupId == groupId).ExecuteDeleteAsync(ct);
+
+        await Db.Contributions.Where(c => c.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.ContributionSchedules.Where(s => s.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.FinancialTransactions
+            .Where(t => t.GroupId == groupId && t.ReversesTransactionId != null)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.ReversesTransactionId, (Guid?)null), ct);
+        await Db.FinancialTransactions.Where(t => t.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.Documents.Where(d => d.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.FinancialAccounts.Where(a => a.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.GroupInvitations.Where(i => i.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.GroupRules.Where(r => r.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.GroupMembers.Where(m => m.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.Announcements.Where(a => a.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.Notifications.Where(n => n.GroupId == groupId).ExecuteDeleteAsync(ct);
+        await Db.StokvelGroups.Where(g => g.Id == groupId).ExecuteDeleteAsync(ct);
+
+        await AuditAsync("GROUP_DELETED", $"{group.Name} ({group.Code}) was deleted.", null, nameof(StokvelGroup), groupId, ct);
+        await Db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
     public async Task<IReadOnlyList<MemberDto>> GetMembersAsync(Guid groupId, CancellationToken ct = default)
     {
         await EnsureGroupAccessAsync(groupId, ct);

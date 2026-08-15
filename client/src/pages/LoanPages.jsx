@@ -45,8 +45,8 @@ export function GroupLoansPage() {
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
-      <div className="split">
-        <div className="table-card" style={{ overflowX: 'auto' }}>
+      <div className="split split-form">
+        <div className="table-card">
           <table>
             <thead><tr><th>Loan</th><th>Principal</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -74,6 +74,9 @@ export function GroupLoansPage() {
                   </td>
                 </tr>
               ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={7} className="muted empty-cell">No group loans yet.</td></tr>
+              )}
             </tbody>
           </table>
           {schedule.length > 0 && (
@@ -87,7 +90,7 @@ export function GroupLoansPage() {
             </table>
           )}
         </div>
-        <form className="card form" onSubmit={create}>
+        <form className="form-card form" onSubmit={create}>
           <h3>Borrowing application</h3>
           <p className="muted">Loan amount cannot be more than this group’s closing savings balance.</p>
           <label>Amount<input type="number" value={form.principal} onChange={(e) => set('principal', Number(e.target.value))} /></label>
@@ -141,8 +144,8 @@ export function MemberLoansPage() {
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
-      <div className="split">
-        <div className="table-card" style={{ overflowX: 'auto' }}>
+      <div className="split split-form">
+        <div className="table-card">
           <table>
             <thead><tr><th>Loan</th><th>Member</th><th>Principal</th><th>Outstanding</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -167,10 +170,13 @@ export function MemberLoansPage() {
                   </td>
                 </tr>
               ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={6} className="muted empty-cell">No member loans yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-        <form className="card form" onSubmit={create}>
+        <form className="form-card form" onSubmit={create}>
           <h3>Request a loan</h3>
           <label>Amount<input type="number" value={form.principal} onChange={(e) => setForm({ ...form, principal: Number(e.target.value) })} /></label>
           <label>Interest %<input type="number" value={form.interestRatePercent} onChange={(e) => setForm({ ...form, interestRatePercent: Number(e.target.value) })} /></label>

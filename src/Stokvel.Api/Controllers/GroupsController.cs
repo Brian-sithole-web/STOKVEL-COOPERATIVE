@@ -71,6 +71,13 @@ public class GroupsController : ControllerBase
         await _groups.CloseAsync(id, ct);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _groups.DeleteInactiveAsync(id, ct);
+        return NoContent();
+    }
 }
 
 public record ReasonRequest(string Reason);

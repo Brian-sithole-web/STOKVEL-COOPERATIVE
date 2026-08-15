@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { money, prettyDate, statusLabel } from '../format'
+import { money, prettyDate, statusLabel, isInactiveGroup } from '../format'
 
 export function GroupsPage() {
-  const { user } = useAuth()
+  const { user, groupId, selectGroup, refresh } = useAuth()
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
   const load = () => api.get('/api/groups').then(setRows).catch((e) => setError(e.message))
@@ -16,12 +16,22 @@ export function GroupsPage() {
     catch (e) { setError(e.message) }
   }
 
+  async function remove(g) {
+    if (!window.confirm(`Delete “${g.name}”? This cannot be undone. Only inactive Stokvels can be deleted.`)) return
+    try {
+      await api.del(`/api/groups/${g.id}`)
+      if (groupId === g.id) selectGroup('')
+      await refresh()
+      load()
+    } catch (e) { setError(e.message) }
+  }
+
   return (
     <section>
       <div className="page-head">
         <div>
           <h1>All Stokvel groups</h1>
-          <p>Independent groups registered on the cooperative platform.</p>
+          <p>Independent groups registered on the cooperative platform. Inactive groups can be removed by the Platform Administrator.</p>
         </div>
         <Link className="btn" to="/stokvels/new">Create Stokvel</Link>
       </div>
@@ -50,6 +60,8 @@ export function GroupsPage() {
                 <td className="actions">
                   {user.isPlatformAdmin && g.status === 'PendingApproval' && <button className="btn" onClick={() => act(g.id, 'approve')}>Approve</button>}
                   {user.isPlatformAdmin && g.status === 'Active' && <button className="btn-secondary" onClick={() => act(g.id, 'suspend')}>Suspend</button>}
+                  {user.isPlatformAdmin && g.status === 'Active' && <button className="btn-secondary" onClick={() => act(g.id, 'close')}>Close</button>}
+                  {user.isPlatformAdmin && isInactiveGroup(g.status) && <button className="btn-danger" onClick={() => remove(g)}>Delete</button>}
                 </td>
               </tr>
             ))}
@@ -123,7 +135,8 @@ export function CreateGroupPage() {
 
 export function GroupDetailPage() {
   const { id } = useParams()
-  const { user, selectGroup } = useAuth()
+  const navigate = useNavigate()
+  const { user, selectGroup, groupId, refresh } = useAuth()
   const [group, setGroup] = useState(null)
   const [members, setMembers] = useState([])
   const [txs, setTxs] = useState([])
@@ -143,6 +156,16 @@ export function GroupDetailPage() {
     catch (e) { setError(e.message) }
   }
 
+  async function remove() {
+    if (!window.confirm(`Delete “${group.name}”? This cannot be undone.`)) return
+    try {
+      await api.del(`/api/groups/${id}`)
+      if (groupId === id) selectGroup('')
+      await refresh()
+      navigate('/stokvels')
+    } catch (e) { setError(e.message) }
+  }
+
   if (!group) return error ? <div className="alert">{error}</div> : <p>Loading…</p>
   const f = group.financials
   return (
@@ -152,7 +175,10 @@ export function GroupDetailPage() {
           <h1>{group.name}</h1>
           <p>{group.code} · {statusLabel(group.status)} · Admin {group.administratorName} · {group.memberCount} members</p>
         </div>
-        {user.isPlatformAdmin && group.status === 'PendingApproval' && <button className="btn" onClick={approve}>Approve & activate</button>}
+        <div className="actions">
+          {user.isPlatformAdmin && group.status === 'PendingApproval' && <button className="btn" onClick={approve}>Approve & activate</button>}
+          {user.isPlatformAdmin && isInactiveGroup(group.status) && <button className="btn-danger" onClick={remove}>Delete group</button>}
+        </div>
       </div>
       {error && <div className="alert">{error}</div>}
       <div className="grid cards">
