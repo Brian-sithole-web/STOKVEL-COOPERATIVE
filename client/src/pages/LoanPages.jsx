@@ -41,12 +41,12 @@ export function GroupLoansPage() {
       <div className="page-head">
         <div>
           <h1>Group loans</h1>
-          <p>Borrowing for the Stokvel as a whole. Approval is required before money can be paid out.</p>
+          <p>A Stokvel needs at least 5 members. You can only borrow from this group, up to the collective savings it has raised.</p>
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
       <div className="split">
-        <div className="card" style={{ overflowX: 'auto' }}>
+        <div className="table-card" style={{ overflowX: 'auto' }}>
           <table>
             <thead><tr><th>Loan</th><th>Principal</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -89,6 +89,7 @@ export function GroupLoansPage() {
         </div>
         <form className="card form" onSubmit={create}>
           <h3>Borrowing application</h3>
+          <p className="muted">Loan amount cannot be more than this group’s closing savings balance.</p>
           <label>Amount<input type="number" value={form.principal} onChange={(e) => set('principal', Number(e.target.value))} /></label>
           <label>Interest %<input type="number" value={form.interestRatePercent} onChange={(e) => set('interestRatePercent', Number(e.target.value))} /></label>
           <label>Months<input type="number" value={form.repaymentMonths} onChange={(e) => set('repaymentMonths', Number(e.target.value))} /></label>
@@ -136,12 +137,12 @@ export function MemberLoansPage() {
       <div className="page-head">
         <div>
           <h1>Member loans</h1>
-          <p>Members borrow from the Stokvel according to group rules. You cannot approve your own loan.</p>
+          <p>Members borrow from their own Stokvel. The group must have at least 5 members, and the amount cannot exceed the collective savings raised.</p>
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
       <div className="split">
-        <div className="card" style={{ overflowX: 'auto' }}>
+        <div className="table-card" style={{ overflowX: 'auto' }}>
           <table>
             <thead><tr><th>Loan</th><th>Member</th><th>Principal</th><th>Outstanding</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -190,7 +191,7 @@ export function AllLoansPage() {
     <section>
       <div className="page-head"><div><h1>Loans</h1><p>Group borrowing across the cooperative.</p></div></div>
       {error && <div className="alert">{error}</div>}
-      <div className="card">
+      <div className="table-card">
         <table>
           <thead><tr><th>Loan</th><th>Group</th><th>Principal</th><th>Outstanding</th><th>Status</th></tr></thead>
           <tbody>

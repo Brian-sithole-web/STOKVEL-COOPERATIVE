@@ -43,7 +43,7 @@ export function ContributionsPage() {
       </div>
       {error && <div className="alert">{error}</div>}
       <div className="split">
-        <div className="card" style={{ overflowX: 'auto' }}>
+        <div className="table-card" style={{ overflowX: 'auto' }}>
           <table>
             <thead><tr><th>Date</th><th>Member</th><th>Kind</th><th>Amount</th><th>Status</th><th>Ref</th><th></th></tr></thead>
             <tbody>
@@ -109,7 +109,7 @@ export function InstalmentsPage() {
         <button className="btn" onClick={generate}>Generate this month</button>
       </div>
       {error && <div className="alert">{error}</div>}
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="table-card" style={{ overflowX: 'auto' }}>
         <table>
           <thead><tr><th>Period</th><th>Member</th><th>Due</th><th>Amount due</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead>
           <tbody>
@@ -149,11 +149,11 @@ export function SavingsPage() {
           <p>Balances are calculated from the ledger. They cannot be edited by hand.</p>
         </div>
       </div>
-      <div className="grid cards">
-        <div className="card"><div className="label">Opening balance</div><div className="value">{money(ledger.openingBalance)}</div></div>
-        <div className="card"><div className="label">Money received</div><div className="value">{money(ledger.moneyReceived)}</div></div>
-        <div className="card"><div className="label">Money paid out</div><div className="value">{money(ledger.moneyPaidOut)}</div></div>
-        <div className="card accent"><div className="label">Closing balance</div><div className="value">{money(ledger.closingBalance)}</div></div>
+      <div className="reports-metrics metrics-4">
+        <div className="stat-card"><div className="stat-body"><div className="label">Opening balance</div><div className="value">{money(ledger.openingBalance)}</div></div></div>
+        <div className="stat-card"><div className="stat-body"><div className="label">Money received</div><div className="value">{money(ledger.moneyReceived)}</div></div></div>
+        <div className="stat-card"><div className="stat-body"><div className="label">Money paid out</div><div className="value">{money(ledger.moneyPaidOut)}</div></div></div>
+        <div className="stat-card accent"><div className="stat-body"><div className="label">Closing balance</div><div className="value">{money(ledger.closingBalance)}</div></div></div>
       </div>
     </section>
   )
@@ -177,7 +177,7 @@ export function TransactionsPage() {
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
-      <div className="card" style={{ overflowX: 'auto' }}>
+      <div className="table-card" style={{ overflowX: 'auto' }}>
         <table>
           <thead><tr><th>Number</th><th>Date</th><th>Type</th><th>Direction</th><th>Amount</th><th>Status</th><th>Reference</th></tr></thead>
           <tbody>

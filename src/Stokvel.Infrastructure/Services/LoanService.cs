@@ -21,7 +21,6 @@ public sealed class LoanService : AppServiceBase, ILoanService
         var group = await GetGroupAsync(groupId, ct);
         var reasons = new List<string>();
         var rule = group.Rule!;
-        var platform = await Db.PlatformSettings.AsNoTracking().FirstOrDefaultAsync(ct);
 
         if (group.Status == GroupStatus.Closed)
             reasons.Add("A closed Stokvel cannot create new loans.");
@@ -33,8 +32,9 @@ public sealed class LoanService : AppServiceBase, ILoanService
             reasons.Add("This lending source is not enabled for the group.");
 
         var members = await Db.GroupMembers.CountAsync(m => m.GroupId == groupId && m.Status == MembershipStatus.Active, ct);
-        if (members < rule.MinimumMembers)
-            reasons.Add($"Minimum members required: {rule.MinimumMembers}.");
+        var minMembers = Math.Max(rule.MinimumMembers, BusinessConstants.MinimumMembers);
+        if (members < minMembers)
+            reasons.Add($"This Stokvel needs at least {minMembers} members before a loan can be requested. Current members: {members}.");
 
         if (rule.MinimumGroupAgeDays > 0 && group.ActivatedAt.HasValue)
         {
@@ -51,13 +51,14 @@ public sealed class LoanService : AppServiceBase, ILoanService
             reasons.Add($"At least {rule.MinimumMonthlyInstalments} monthly instalments must be paid.");
 
         var savings = await GroupSavingsAsync(groupId, ct);
+        if (savings <= 0)
+            reasons.Add("The group has not raised any collective savings yet.");
         if (savings < rule.MinimumSavingsBalance)
             reasons.Add($"Minimum savings balance is R{rule.MinimumSavingsBalance:N2}.");
 
-        var capPercent = Math.Min(rule.MaxGroupBorrowingPercentOfSavings, platform?.DefaultMaxGroupBorrowingPercent ?? 80m);
-        var maxBorrow = Money.Round(savings * capPercent / 100m);
+        var maxBorrow = Money.Round(savings);
         if (requestedAmount > maxBorrow)
-            reasons.Add($"Requested amount exceeds {capPercent}% of savings (max R{maxBorrow:N2}).");
+            reasons.Add($"The loan cannot exceed the collective savings this Stokvel has raised (max R{maxBorrow:N2}).");
 
         if (rule.RequireNoOverdueInstalments)
         {
@@ -92,14 +93,21 @@ public sealed class LoanService : AppServiceBase, ILoanService
         if (group.Status == GroupStatus.Closed)
             reasons.Add("A closed Stokvel cannot create new loans.");
 
-        var contributions = await MemberContributionsAsync(memberId, ct);
-        var max = Money.Round(contributions * rule.MemberLoanMultiplier);
-        if (requestedAmount > max)
-            reasons.Add($"Maximum member loan is {rule.MemberLoanMultiplier}× contributions (R{max:N2}).");
+        var members = await Db.GroupMembers.CountAsync(m => m.GroupId == groupId && m.Status == MembershipStatus.Active, ct);
+        var minMembers = Math.Max(rule.MinimumMembers, BusinessConstants.MinimumMembers);
+        if (members < minMembers)
+            reasons.Add($"This Stokvel needs at least {minMembers} members before a loan can be requested. Current members: {members}.");
 
+        var contributions = await MemberContributionsAsync(memberId, ct);
         var savings = await GroupSavingsAsync(groupId, ct);
+        var fromContributions = Money.Round(contributions * rule.MemberLoanMultiplier);
+        var max = Money.Round(Math.Min(savings, fromContributions > 0 ? fromContributions : savings));
+        if (savings <= 0)
+            reasons.Add("The group has not raised any collective savings yet.");
         if (requestedAmount > savings)
-            reasons.Add("The group does not have enough available savings to disburse this loan.");
+            reasons.Add($"The loan cannot exceed the collective savings this Stokvel has raised (max R{savings:N2}).");
+        else if (requestedAmount > max)
+            reasons.Add($"Maximum member loan is limited to the group’s raised savings and member contributions (R{max:N2}).");
 
         var existing = await Db.MemberLoans.AnyAsync(l => l.MemberId == memberId && (l.Status == LoanStatus.Active || l.Status == LoanStatus.Disbursed || l.Status == LoanStatus.PartiallyRepaid || l.Status == LoanStatus.Defaulted), ct);
         if (existing) reasons.Add("This member already has an outstanding or defaulted loan.");

@@ -28,7 +28,7 @@ export function ReportsPage() {
   }, [groupId])
 
   return (
-    <section>
+    <section className="reports">
       <div className="page-head">
         <div>
           <h1>Reports</h1>
@@ -37,38 +37,45 @@ export function ReportsPage() {
       </div>
       {error && <div className="alert">{error}</div>}
       {statement && (
-        <div className="grid cards">
-          <div className="card"><div className="label">Opening</div><div className="value">{money(statement.openingBalance)}</div></div>
-          <div className="card"><div className="label">Initial deposits</div><div className="value">{money(statement.initialDeposits)}</div></div>
-          <div className="card"><div className="label">Monthly instalments</div><div className="value">{money(statement.monthlyInstalments)}</div></div>
-          <div className="card"><div className="label">Loan disbursements</div><div className="value">{money(statement.loanDisbursements)}</div></div>
-          <div className="card"><div className="label">Repayments</div><div className="value">{money(statement.loanRepayments)}</div></div>
-          <div className="card accent"><div className="label">Closing</div><div className="value">{money(statement.closingBalance)}</div></div>
+        <div className="reports-metrics">
+          <div className="stat-card"><div className="stat-body"><div className="label">Opening</div><div className="value">{money(statement.openingBalance)}</div></div></div>
+          <div className="stat-card"><div className="stat-body"><div className="label">Initial deposits</div><div className="value">{money(statement.initialDeposits)}</div></div></div>
+          <div className="stat-card"><div className="stat-body"><div className="label">Monthly instalments</div><div className="value">{money(statement.monthlyInstalments)}</div></div></div>
+          <div className="stat-card"><div className="stat-body"><div className="label">Loan disbursements</div><div className="value">{money(statement.loanDisbursements)}</div></div></div>
+          <div className="stat-card"><div className="stat-body"><div className="label">Repayments</div><div className="value">{money(statement.loanRepayments)}</div></div></div>
+          <div className="stat-card accent"><div className="stat-body"><div className="label">Closing</div><div className="value">{money(statement.closingBalance)}</div></div></div>
         </div>
       )}
       {members.length > 0 && (
-        <div className="card" style={{ marginTop: 16 }}>
+        <div className="table-card">
           <h3>Member statements</h3>
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Member</th><th>Contributions</th><th>Loans</th><th>Repayments</th><th>Outstanding</th></tr></thead>
+              <tbody>
+                {members.map((m) => (
+                  <tr key={m.memberId}><td>{m.memberName}</td><td>{money(m.contributions)}</td><td>{money(m.loans)}</td><td>{money(m.repayments)}</td><td>{money(m.outstandingBalance)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      <div className="table-card">
+        <h3>Loan report</h3>
+        <div className="table-wrap">
           <table>
-            <thead><tr><th>Member</th><th>Contributions</th><th>Loans</th><th>Repayments</th><th>Outstanding</th></tr></thead>
+            <thead><tr><th>Loan</th><th>Borrower</th><th>Kind</th><th>Principal</th><th>Interest</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead>
             <tbody>
-              {members.map((m) => (
-                <tr key={m.memberId}><td>{m.memberName}</td><td>{money(m.contributions)}</td><td>{money(m.loans)}</td><td>{money(m.repayments)}</td><td>{money(m.outstandingBalance)}</td></tr>
+              {loans.map((l) => (
+                <tr key={l.loanNumber}><td>{l.loanNumber}</td><td>{l.borrower}</td><td>{statusLabel(l.kind)}</td><td>{money(l.principal)}</td><td>{money(l.interest)}</td><td>{money(l.paid)}</td><td>{money(l.outstanding)}</td><td>{statusLabel(l.status)}</td></tr>
               ))}
+              {loans.length === 0 && (
+                <tr><td colSpan={8} className="muted">No loans in this period.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-      )}
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>Loan report</h3>
-        <table>
-          <thead><tr><th>Loan</th><th>Borrower</th><th>Kind</th><th>Principal</th><th>Interest</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead>
-          <tbody>
-            {loans.map((l) => (
-              <tr key={l.loanNumber}><td>{l.loanNumber}</td><td>{l.borrower}</td><td>{l.kind}</td><td>{money(l.principal)}</td><td>{money(l.interest)}</td><td>{money(l.paid)}</td><td>{money(l.outstanding)}</td><td>{statusLabel(l.status)}</td></tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </section>
   )
