@@ -68,7 +68,7 @@ public sealed class SetupService : AppServiceBase, ISetupService
             Db.PlatformSettings.Add(new PlatformSettings
             {
                 SetupCompleted = true,
-                SetupCompletedAt = DateTimeOffset.UtcNow,
+                SetupCompletedAt = DateTime.UtcNow,
                 DefaultLendingSources = LendingSource.Both
             });
         }
@@ -76,7 +76,7 @@ public sealed class SetupService : AppServiceBase, ISetupService
         {
             var settings = await Db.PlatformSettings.FirstAsync(ct);
             settings.SetupCompleted = true;
-            settings.SetupCompletedAt = DateTimeOffset.UtcNow;
+            settings.SetupCompletedAt = DateTime.UtcNow;
         }
 
         await AuditAsync("SETUP", $"Platform Administrator {user.FullName} was created through secure first-run setup.", ct: ct);
@@ -178,7 +178,7 @@ public sealed class AuthService : AppServiceBase, IAuthService
     {
         var invite = await Db.GroupInvitations.FirstOrDefaultAsync(i => i.Token == request.Token, ct)
                      ?? throw new NotFoundException("Invitation not found.");
-        if (invite.Status != InvitationStatus.Pending || invite.ExpiresAt < DateTimeOffset.UtcNow)
+        if (invite.Status != InvitationStatus.Pending || invite.ExpiresAt < DateTime.UtcNow)
             throw new BusinessRuleException("INVITE_INVALID", "This invitation is no longer valid.");
 
         var user = await Users.FindByEmailAsync(invite.Email);

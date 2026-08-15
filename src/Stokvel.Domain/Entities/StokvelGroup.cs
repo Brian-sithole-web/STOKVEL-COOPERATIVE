@@ -7,9 +7,9 @@ public class StokvelGroup : BaseEntity
     public string Code { get; set; } = string.Empty;
     public GroupStatus Status { get; set; } = GroupStatus.Draft;
     public Guid CreatedByUserId { get; set; }
-    public DateTimeOffset? ActivatedAt { get; set; }
-    public DateTimeOffset? InitialDepositCompletedAt { get; set; }
-    public DateTimeOffset? ClosedAt { get; set; }
+    public DateTime? ActivatedAt { get; set; }
+    public DateTime? InitialDepositCompletedAt { get; set; }
+    public DateTime? ClosedAt { get; set; }
     public string? SuspensionReason { get; set; }
 
     public GroupRule? Rule { get; set; }

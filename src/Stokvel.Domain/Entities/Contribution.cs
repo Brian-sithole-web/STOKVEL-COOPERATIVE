@@ -7,7 +7,7 @@ public class Contribution : BaseEntity
     public Guid? ScheduleId { get; set; }
     public decimal Amount { get; set; }
     public ContributionKind Kind { get; set; }
-    public DateTimeOffset PaymentDate { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
     public string? PaymentReference { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Eft;
     public TransactionStatus Status { get; set; } = TransactionStatus.Pending;

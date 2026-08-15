@@ -7,5 +7,5 @@ public class PlatformSettings
     public int DefaultMinimumMembers { get; set; } = BusinessConstants.MinimumMembers;
     public LendingSource DefaultLendingSources { get; set; } = LendingSource.Both;
     public bool SetupCompleted { get; set; }
-    public DateTimeOffset? SetupCompletedAt { get; set; }
+    public DateTime? SetupCompletedAt { get; set; }
 }

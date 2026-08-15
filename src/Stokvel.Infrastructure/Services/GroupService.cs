@@ -159,7 +159,7 @@ public sealed class GroupService : AppServiceBase, IGroupService
             GroupId = groupId,
             Email = email,
             Token = Convert.ToHexString(Guid.NewGuid().ToByteArray()) + Guid.NewGuid().ToString("N"),
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(14),
+            ExpiresAt = DateTime.UtcNow.AddDays(14),
             InvitedByUserId = Current.UserId
         };
         Db.GroupInvitations.Add(invite);
@@ -232,7 +232,7 @@ public sealed class GroupService : AppServiceBase, IGroupService
         if (depositDone)
         {
             group.Status = GroupStatus.Active;
-            group.ActivatedAt = DateTimeOffset.UtcNow;
+            group.ActivatedAt = DateTime.UtcNow;
             await NotifyGroupOfficersAsync(groupId, "Stokvel activated", $"{group.Name} is now an active Stokvel.", NotificationType.GroupActivated, ct);
         }
         else
@@ -262,7 +262,7 @@ public sealed class GroupService : AppServiceBase, IGroupService
             throw new ForbiddenException("Only the Platform Administrator can close a Stokvel.");
         var group = await GetGroupAsync(groupId, ct);
         group.Status = GroupStatus.Closed;
-        group.ClosedAt = DateTimeOffset.UtcNow;
+        group.ClosedAt = DateTime.UtcNow;
         await AuditAsync("GROUP_CLOSED", $"{group.Name} was closed.", groupId, nameof(StokvelGroup), groupId, ct);
         await Db.SaveChangesAsync(ct);
     }

@@ -38,7 +38,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
 
         if (rule.MinimumGroupAgeDays > 0 && group.ActivatedAt.HasValue)
         {
-            var age = (DateTimeOffset.UtcNow - group.ActivatedAt.Value).TotalDays;
+            var age = (DateTime.UtcNow - group.ActivatedAt.Value).TotalDays;
             if (age < rule.MinimumGroupAgeDays)
                 reasons.Add($"The Stokvel must be at least {rule.MinimumGroupAgeDays} days old.");
         }
@@ -179,7 +179,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
         current.ApproverUserId = Current.UserId;
         current.Decision = request.Approve ? ApprovalDecision.Approved : ApprovalDecision.Rejected;
         current.Comment = request.Comment;
-        current.DecidedAt = DateTimeOffset.UtcNow;
+        current.DecidedAt = DateTime.UtcNow;
         loan.Status = LoanStatus.UnderReview;
 
         var group = await GetGroupAsync(groupId, ct);
@@ -193,7 +193,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
         else if (steps.All(s => s.Decision == ApprovalDecision.Approved || s.Id == current.Id))
         {
             loan.Status = LoanStatus.Approved;
-            loan.ApprovedAt = DateTimeOffset.UtcNow;
+            loan.ApprovedAt = DateTime.UtcNow;
             await NotifyGroupOfficersAsync(groupId, "Group loan approved", $"{group.Name} loan {loan.LoanNumber} was approved.", NotificationType.GroupLoanApproved, ct);
             await AuditAsync("GROUP_LOAN_APPROVED", $"Loan {loan.LoanNumber} was approved.", groupId, nameof(GroupLoan), loan.Id, ct);
         }
@@ -224,7 +224,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
             loan.Principal, TransactionStatus.Confirmed, loan.LoanNumber, PaymentMethod.Eft, $"Receivable {loan.LoanNumber}", loan.Id, null, ct);
 
         loan.Status = LoanStatus.Active;
-        loan.DisbursedAt = DateTimeOffset.UtcNow;
+        loan.DisbursedAt = DateTime.UtcNow;
         loan.DisbursementTransactionId = outflow.Id;
 
         var start = DateTime.UtcNow.Date;
@@ -372,7 +372,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
         step.ApproverUserId = Current.UserId;
         step.Decision = request.Approve ? ApprovalDecision.Approved : ApprovalDecision.Rejected;
         step.Comment = request.Comment;
-        step.DecidedAt = DateTimeOffset.UtcNow;
+        step.DecidedAt = DateTime.UtcNow;
 
         var member = await Db.GroupMembers.FirstAsync(m => m.Id == loan.MemberId, ct);
         if (!request.Approve)
@@ -385,7 +385,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
         else
         {
             loan.Status = LoanStatus.Approved;
-            loan.ApprovedAt = DateTimeOffset.UtcNow;
+            loan.ApprovedAt = DateTime.UtcNow;
             Notify(member.UserId, "Loan approved", $"Member loan {loan.LoanNumber} was approved.", NotificationType.MemberLoanApproved, groupId);
             await AuditAsync("MEMBER_LOAN_APPROVED", $"Loan {loan.LoanNumber} was approved.", groupId, nameof(MemberLoan), loan.Id, ct);
         }
@@ -414,7 +414,7 @@ public sealed class LoanService : AppServiceBase, ILoanService
         await PostAsync(groupId, receivable.Id, loan.MemberId, TransactionType.MemberLoanDisbursement, TransactionDirection.Inflow,
             loan.Principal, TransactionStatus.Confirmed, loan.LoanNumber, PaymentMethod.Eft, $"Receivable {loan.LoanNumber}", loan.Id, null, ct);
         loan.Status = LoanStatus.Active;
-        loan.DisbursedAt = DateTimeOffset.UtcNow;
+        loan.DisbursedAt = DateTime.UtcNow;
         loan.DisbursementTransactionId = outflow.Id;
         var start = DateTime.UtcNow.Date;
         foreach (var item in BuildSchedule(loan.RepaymentMonths, loan.TotalRepayable, loan.MonthlyRepayment, start,

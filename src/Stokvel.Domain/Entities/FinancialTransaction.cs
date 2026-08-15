@@ -10,8 +10,8 @@ public class FinancialTransaction : BaseEntity
     public TransactionDirection Direction { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = BusinessConstants.Currency;
-    public DateTimeOffset TransactionDate { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? ConfirmedAt { get; set; }
+    public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
+    public DateTime? ConfirmedAt { get; set; }
     public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
     public string? PaymentReference { get; set; }
     public PaymentMethod? PaymentMethod { get; set; }

@@ -167,7 +167,7 @@ public sealed class ContributionService : AppServiceBase, IContributionService
             ScheduleId = request.ScheduleId,
             Amount = Money.Round(request.Amount),
             Kind = request.Kind,
-            PaymentDate = request.PaymentDate,
+            PaymentDate = request.PaymentDate.UtcDateTime,
             PaymentReference = request.PaymentReference,
             PaymentMethod = request.PaymentMethod,
             Status = TransactionStatus.Pending,
@@ -221,7 +221,7 @@ public sealed class ContributionService : AppServiceBase, IContributionService
             if (schedule.AmountPaid >= schedule.AmountDue)
             {
                 schedule.Status = ContributionStatus.Paid;
-                schedule.PaidDate = contribution.PaymentDate.UtcDateTime.Date;
+                schedule.PaidDate = contribution.PaymentDate.Date;
             }
             else
                 schedule.Status = ContributionStatus.PartiallyPaid;
@@ -238,14 +238,14 @@ public sealed class ContributionService : AppServiceBase, IContributionService
                 .SumAsync(c => c.Amount, ct);
             if (totalInitial >= group.Rule!.InitialDepositAmount)
             {
-                group.InitialDepositCompletedAt = DateTimeOffset.UtcNow;
+                group.InitialDepositCompletedAt = DateTime.UtcNow;
                 if (group.Status is GroupStatus.AwaitingInitialDeposit or GroupStatus.PendingApproval)
                 {
                     var members = await Db.GroupMembers.CountAsync(m => m.GroupId == groupId && m.Status == MembershipStatus.Active, ct);
                     if (members >= BusinessConstants.MinimumMembers && group.Status == GroupStatus.AwaitingInitialDeposit)
                     {
                         group.Status = GroupStatus.Active;
-                        group.ActivatedAt = DateTimeOffset.UtcNow;
+                        group.ActivatedAt = DateTime.UtcNow;
                     }
                 }
                 await NotifyGroupOfficersAsync(groupId, "Initial deposit confirmed",

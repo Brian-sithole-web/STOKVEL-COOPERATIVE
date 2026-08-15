@@ -107,7 +107,7 @@ public sealed class ReportService : AppServiceBase, IReportService
         await EnsureGroupAccessAsync(groupId, ct);
         var group = await GetGroupAsync(groupId, ct);
         var ledger = await new LedgerService(Db, Current, Users).GetLedgerAsync(groupId, from, to, ct);
-        var txs = await Db.FinancialTransactions.Where(t => t.GroupId == groupId && t.Status == TransactionStatus.Confirmed && t.TransactionDate >= from && t.TransactionDate <= to).ToListAsync(ct);
+        var txs = await Db.FinancialTransactions.Where(t => t.GroupId == groupId && t.Status == TransactionStatus.Confirmed && t.TransactionDate >= from.UtcDateTime && t.TransactionDate <= to.UtcDateTime).ToListAsync(ct);
         decimal In(TransactionType t) => Money.Round(txs.Where(x => x.Type == t && x.Direction == TransactionDirection.Inflow).Sum(x => x.Amount));
         decimal Out(params TransactionType[] types) => Money.Round(txs.Where(x => types.Contains(x.Type) && x.Direction == TransactionDirection.Outflow).Sum(x => x.Amount));
         return new GroupStatementDto(group.Id, group.Name, from, to, ledger.OpeningBalance,

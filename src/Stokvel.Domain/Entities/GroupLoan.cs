@@ -12,9 +12,9 @@ public class GroupLoan : BaseEntity
     public string Purpose { get; set; } = string.Empty;
     public LoanStatus Status { get; set; } = LoanStatus.Draft;
     public LendingSource Source { get; set; } = LendingSource.GroupSavingsPool;
-    public DateTimeOffset RequestedDate { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? ApprovedAt { get; set; }
-    public DateTimeOffset? DisbursedAt { get; set; }
+    public DateTime RequestedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? ApprovedAt { get; set; }
+    public DateTime? DisbursedAt { get; set; }
     public Guid RequestedByUserId { get; set; }
     public Guid? DisbursementTransactionId { get; set; }
     public string? RejectionReason { get; set; }
