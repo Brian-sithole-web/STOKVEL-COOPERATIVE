@@ -1,7 +1,8 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth'
-import { isOfficer } from '../format'
-import { Icon } from '../icons'
+import { useAuth } from '@/auth/AuthProvider'
+import { BrandLogo } from '@/components/brand/BrandLogo'
+import { Icon } from '@/components/ui/Icon'
+import { isOfficer } from '@/lib/format'
 
 export default function Layout() {
   const { user, groupId, selectGroup, logout, membership } = useAuth()
@@ -49,7 +50,7 @@ export default function Layout() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-logo" src="/pkvela-logo.png?v=2" alt="pkvela Cooperative" />
+          <BrandLogo variant="compact" />
         </div>
 
         {user?.memberships?.length > 0 && (

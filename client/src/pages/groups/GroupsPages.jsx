@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api'
-import { useAuth } from '../auth'
-import { money, prettyDate, statusLabel, isInactiveGroup } from '../format'
+import { api } from '@/lib/api'
+import { useAuth } from '@/auth/AuthProvider'
+import { money, prettyDate, statusLabel, isInactiveGroup } from '@/lib/format'
 
 export function GroupsPage() {
   const { user, groupId, selectGroup, refresh } = useAuth()

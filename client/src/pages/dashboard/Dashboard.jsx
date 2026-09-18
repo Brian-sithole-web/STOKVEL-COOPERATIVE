@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../api'
-import { useAuth } from '../auth'
-import { isOfficer, money, prettyDate, statusLabel } from '../format'
-import { Icon } from '../icons'
+import { api } from '@/lib/api'
+import { useAuth } from '@/auth/AuthProvider'
+import { isOfficer, money, prettyDate, statusLabel } from '@/lib/format'
+import { Icon } from '@/components/ui/Icon'
 
 export default function Dashboard() {
   const { user, groupId, membership } = useAuth()

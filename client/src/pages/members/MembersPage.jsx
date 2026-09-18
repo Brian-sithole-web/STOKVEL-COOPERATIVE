@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { api } from '../api'
-import { useAuth } from '../auth'
-import { money, prettyDate, statusLabel } from '../format'
+import { api } from '@/lib/api'
+import { useAuth } from '@/auth/AuthProvider'
+import { money, prettyDate, statusLabel } from '@/lib/format'
 
 export default function MembersPage() {
   const { groupId } = useAuth()
