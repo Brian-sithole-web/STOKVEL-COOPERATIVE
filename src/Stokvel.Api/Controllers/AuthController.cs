@@ -39,6 +39,14 @@ public class AuthController : ControllerBase
     [HttpPost("accept-invite")]
     public Task<AuthResponse> AcceptInvite(AcceptInviteRequest request, CancellationToken ct) => _auth.AcceptInviteAsync(request, ct);
 
+    [HttpPost("forgot-password")]
+    public Task<ForgotPasswordResultDto> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct) =>
+        _auth.ForgotPasswordAsync(request, ct);
+
+    [HttpPost("reset-password")]
+    public Task<AuthResponse> ResetPassword(ResetPasswordRequest request, CancellationToken ct) =>
+        _auth.ResetPasswordAsync(request, ct);
+
     [Authorize]
     [HttpGet("me")]
     public Task<AuthResponse> Me(CancellationToken ct) => _auth.MeAsync(ct);

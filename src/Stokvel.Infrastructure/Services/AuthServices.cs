@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Stokvel.Application.Common;
 using Stokvel.Application.Dtos;
 using Stokvel.Application.Services;
 using Stokvel.Domain;
 using Stokvel.Domain.Entities;
+using Stokvel.Infrastructure.Email;
 using Stokvel.Infrastructure.Identity;
 using Stokvel.Infrastructure.Persistence;
 
@@ -109,16 +112,27 @@ public sealed class AuthService : AppServiceBase, IAuthService
 {
     private readonly TokenFactory _tokens;
     private readonly RoleManager<ApplicationRole> _roles;
+    private readonly IEmailSender _emailSender;
+    private readonly IConfiguration _config;
+    private readonly IHostEnvironment _environment;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         StokvelDbContext db,
         ICurrentUser current,
         UserManager<ApplicationUser> users,
         RoleManager<ApplicationRole> roles,
-        IConfiguration config) : base(db, current, users)
+        IConfiguration config,
+        IEmailSender emailSender,
+        IHostEnvironment environment,
+        ILogger<AuthService> logger) : base(db, current, users)
     {
         _roles = roles;
+        _config = config;
         _tokens = new TokenFactory(config);
+        _emailSender = emailSender;
+        _environment = environment;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -225,5 +239,62 @@ public sealed class AuthService : AppServiceBase, IAuthService
         var group = await Db.StokvelGroups.AsNoTracking().FirstOrDefaultAsync(row => row.Id == invite.GroupId, ct)
                     ?? throw new NotFoundException("Stokvel not found.");
         return new InvitePreviewDto(invite.Email, group.Name, invite.ExpiresAt);
+    }
+
+    public async Task<ForgotPasswordResultDto> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(email))
+            throw new BusinessRuleException("EMAIL_REQUIRED", "Enter the email address for your account.");
+
+        const string genericMessage = "If that email is registered, we sent a link to reset your password.";
+        var user = await Users.FindByEmailAsync(email);
+        if (user is null)
+            return new ForgotPasswordResultDto(genericMessage, false, null);
+
+        var token = await Users.GeneratePasswordResetTokenAsync(user);
+        var resetUrl = MailLink.PasswordReset(
+            MailLink.ResolveAppBaseUrl(_config, request.ClientOrigin),
+            user.Email ?? email,
+            token);
+
+        try
+        {
+            await _emailSender.SendAsync(
+                user.Email ?? email,
+                "Reset your pkvela password",
+                PasswordResetEmail.BuildHtml(user.FullName, resetUrl),
+                ct);
+            return new ForgotPasswordResultDto(genericMessage, true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not email password reset to {Email}", user.Email);
+            var developmentLink = _environment.IsDevelopment() ? resetUrl : null;
+            var message = developmentLink is null
+                ? genericMessage
+                : $"{genericMessage} The email could not be sent from this machine. Use this link to reset your password.";
+            return new ForgotPasswordResultDto(message, false, developmentLink);
+        }
+    }
+
+    public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
+    {
+        SetupService.ValidatePassword(request.Password);
+        var email = request.Email?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(request.Token))
+            throw new BusinessRuleException("RESET_INVALID", "This password reset link is incomplete. Request a new one from the sign-in page.");
+
+        var user = await Users.FindByEmailAsync(email)
+                   ?? throw new BusinessRuleException("RESET_INVALID", "This password reset link is no longer valid.");
+        var reset = await Users.ResetPasswordAsync(user, request.Token, request.Password);
+        if (!reset.Succeeded)
+            throw new BusinessRuleException("RESET_INVALID", "This password reset link is no longer valid. Request a new one from the sign-in page.");
+
+        user.MustChangePassword = false;
+        await Users.UpdateAsync(user);
+        await AuditAsync("PASSWORD_RESET", $"{user.Email} reset their password.", ct: ct);
+        await Db.SaveChangesAsync(ct);
+        return await BuildAuthAsync(user, ct, _tokens);
     }
 }

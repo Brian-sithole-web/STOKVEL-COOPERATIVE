@@ -2,9 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '@/auth/AuthProvider'
 import Layout from '@/components/layout/Layout'
 import { Gate } from '@/pages/auth/Gate'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { InvitePage } from '@/pages/auth/InvitePage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { SetupPage } from '@/pages/auth/SetupPage'
 import Dashboard from '@/pages/dashboard/Dashboard'
 import { CreateGroupPage, GroupDetailPage, GroupsPage } from '@/pages/groups/GroupsPages'
@@ -20,6 +22,8 @@ export default function App() {
         <Routes>
           <Route path="/setup" element={<SetupPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/invite" element={<InvitePage />} />
           <Route path="/" element={<Gate><Layout /></Gate>}>

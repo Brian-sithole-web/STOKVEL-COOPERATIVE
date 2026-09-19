@@ -12,6 +12,12 @@ public record LoginRequest(string Email, string Password);
 
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
+public record ForgotPasswordRequest(string Email, string? ClientOrigin = null);
+
+public record ResetPasswordRequest(string Email, string Token, string Password);
+
+public record ForgotPasswordResultDto(string Message, bool EmailSent, string? ResetUrl);
+
 public record AuthResponse(
     string Token,
     DateTimeOffset ExpiresAt,

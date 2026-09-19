@@ -1,4 +1,5 @@
 const TOKEN = 'stokvel.token'
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || (import.meta.env.DEV ? 'http://localhost:5187' : '')
 
 export function getToken() {
   return localStorage.getItem(TOKEN)
@@ -9,17 +10,28 @@ export function setToken(token) {
   else localStorage.removeItem(TOKEN)
 }
 
+function errorMessage(data, status, rawText) {
+  return data?.message || data?.title || (rawText ? rawText.slice(0, 180) : '') || `Request failed (${status})`
+}
+
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const res = await fetch(path, { ...options, headers })
+  const res = await fetch(`${API_ORIGIN}${path}`, { ...options, headers })
   if (res.status === 204) return null
   const text = await res.text()
-  const data = text ? JSON.parse(text) : null
+  let data = null
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = null
+    }
+  }
   if (!res.ok) {
-    const err = new Error(data?.message || 'Request failed')
+    const err = new Error(errorMessage(data, res.status, text))
     err.code = data?.code
     err.status = res.status
     throw err

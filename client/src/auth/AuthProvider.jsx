@@ -66,6 +66,11 @@ export function AuthProvider({ children }) {
       applyAuth(auth)
       return auth
     },
+    async resetPassword(email, token, password) {
+      const auth = await api.post('/api/auth/reset-password', { email, token, password })
+      applyAuth(auth)
+      return auth
+    },
     logout() {
       setToken(null)
       setUser(null)

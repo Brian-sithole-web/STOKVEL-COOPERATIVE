@@ -27,7 +27,7 @@ public sealed class SmtpEmailSender : IEmailSender
             cancellationToken);
 
         if (!_settings.Enabled || string.IsNullOrWhiteSpace(_settings.UserName) || string.IsNullOrWhiteSpace(_settings.Password))
-            throw new InvalidOperationException("Mail is not configured. Set Mail:UserName and Mail:Password (a Gmail app password) so invitations can be emailed.");
+            throw new InvalidOperationException("Mail is not configured. Set Mail:UserName and Mail:Password (a Gmail app password) so the app can send email.");
 
         using var message = new MailMessage
         {
@@ -47,6 +47,6 @@ public sealed class SmtpEmailSender : IEmailSender
 #pragma warning restore SYSLIB0014
 
         await client.SendMailAsync(message, cancellationToken);
-        _logger.LogInformation("Invitation email sent to {Email}", toEmail);
+        _logger.LogInformation("Email sent to {Email}", toEmail);
     }
 }

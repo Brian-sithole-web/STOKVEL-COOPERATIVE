@@ -188,7 +188,7 @@ public sealed class GroupService : AppServiceBase, IGroupService
         await AuditAsync("MEMBER_INVITED", $"{email} was invited to {group.Name}.", groupId, nameof(GroupInvitation), invite.Id, ct);
         await Db.SaveChangesAsync(ct);
 
-        var inviteUrl = $"{ResolveAppBaseUrl(request.ClientOrigin)}/invite?token={invite.Token}";
+        var inviteUrl = $"{MailLink.ResolveAppBaseUrl(_config, request.ClientOrigin)}/invite?token={invite.Token}";
         var emailSent = false;
         var message = $"Invitation created for {email}.";
         try
@@ -439,20 +439,6 @@ public sealed class GroupService : AppServiceBase, IGroupService
             sum += l.TotalRepayable - paid;
         }
         return Money.Round(sum);
-    }
-
-    private string ResolveAppBaseUrl(string? clientOrigin)
-    {
-        var allowedOrigins = _config?.GetSection("Cors:Origins").Get<string[]>()
-                             ?? ["http://localhost:5173", "http://localhost:5174"];
-        var origin = clientOrigin?.Trim().TrimEnd('/');
-        if (!string.IsNullOrWhiteSpace(origin)
-            && allowedOrigins.Any(allowed => string.Equals(allowed.TrimEnd('/'), origin, StringComparison.OrdinalIgnoreCase)))
-        {
-            return origin;
-        }
-
-        return (_config?["Mail:AppBaseUrl"] ?? "http://localhost:5174").TrimEnd('/');
     }
 
     internal async Task<GroupFinancialSummaryDto> BuildFinancialsAsync(Guid groupId, CancellationToken ct)

@@ -32,6 +32,9 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<StokvelDbContext>()
             .AddDefaultTokenProviders();
 
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+            options.TokenLifespan = TimeSpan.FromHours(2));
+
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();

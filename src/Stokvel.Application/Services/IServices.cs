@@ -18,6 +18,8 @@ public interface IAuthService
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
     Task<AuthResponse> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default);
     Task<InvitePreviewDto> GetInvitePreviewAsync(string token, CancellationToken ct = default);
+    Task<ForgotPasswordResultDto> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default);
+    Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default);
 }
 
 public interface IGroupService

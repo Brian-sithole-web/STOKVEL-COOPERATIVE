@@ -280,6 +280,23 @@ a { color: inherit; }
 
 .auth-reveal:hover { color: #063925; background: rgba(6, 57, 37, 0.06); }
 
+.auth-forgot {
+  text-align: right;
+  margin: -4px 0 0;
+}
+
+.auth-forgot a {
+  font-size: 12px;
+  font-weight: 700;
+  color: #063925;
+  text-decoration: none;
+}
+
+.auth-forgot a:hover {
+  color: #8c6d2f;
+  text-decoration: underline;
+}
+
 .auth-submit {
   margin-top: 6px;
   justify-content: center;
@@ -700,6 +717,9 @@ th { color: var(--muted); font-weight: 650; font-size: 11px; letter-spacing: .04
 
 .alert { background: #f8d4d4; color: var(--danger); padding: 10px 12px; border-radius: 10px; }
 .success { background: #d9f0e3; color: var(--ok); padding: 10px 12px; border-radius: 10px; }
+.success p { margin: 0 0 8px; }
+.success p:last-child { margin: 0; }
+.success a { color: inherit; font-weight: 700; }
 .muted { color: var(--muted); }
 .split { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr); gap: 12px; align-items: stretch; }
 .split-form { grid-template-columns: minmax(0, 1.2fr) minmax(300px, 360px); }

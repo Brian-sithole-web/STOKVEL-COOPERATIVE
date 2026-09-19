@@ -50,6 +50,11 @@ export function LoginPage() {
           value={form.password}
           onChange={(event) => setForm({ ...form, password: event.target.value })}
         />
+        <p className="auth-forgot">
+          <Link to={form.email ? `/forgot-password?email=${encodeURIComponent(form.email)}` : '/forgot-password'}>
+            Forgot password?
+          </Link>
+        </p>
         <button className="btn auth-submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
         <p className="muted auth-foot">New here? <Link to="/register">Create an account</Link></p>
       </form>
