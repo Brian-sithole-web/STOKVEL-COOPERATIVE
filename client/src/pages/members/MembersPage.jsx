@@ -17,7 +17,7 @@ export default function MembersPage() {
     e.preventDefault()
     setError('')
     try {
-      const result = await api.post(`/api/groups/${groupId}/invites`, { email })
+      const result = await api.post(`/api/groups/${groupId}/invites`, { email, clientOrigin: window.location.origin })
       setInvite(result)
       setEmail('')
     } catch (err) { setError(err.message) }
@@ -34,7 +34,6 @@ export default function MembersPage() {
   }
 
   if (!groupId) return <p>Select a Stokvel first.</p>
-  const link = invite ? `${window.location.origin}/invite?token=${invite.token}` : null
 
   return (
     <section>
@@ -45,7 +44,18 @@ export default function MembersPage() {
         </div>
       </div>
       {error && <div className="alert">{error}</div>}
-      {invite && <div className="success">Invitation created. Share this link: {link}</div>}
+      {invite && (
+        <div className="success">
+          <p>{invite.message || `Invitation created for ${invite.email}.`}</p>
+          {invite.token && (
+            <p>
+              <a href={`${window.location.origin}/invite?token=${encodeURIComponent(invite.token)}`}>
+                Open create-password link
+              </a>
+            </p>
+          )}
+        </div>
+      )}
       <div className="split">
         <div className="card">
           <table>

@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Stokvel.Api.Middleware;
 using Stokvel.Domain;
 using Stokvel.Infrastructure;
+using Stokvel.Infrastructure.Email;
 using Stokvel.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,7 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("Default")
                        ?? "Data Source=stokvel.db";
 builder.Services.AddStokvelInfrastructure(connectionString);
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("Mail"));
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Configure Jwt:Key.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -43,7 +45,7 @@ builder.Services.AddCors(o => o.AddPolicy("spa", p =>
 var app = builder.Build();
 await app.Services.InitializeDatabaseAsync();
 if (app.Environment.IsDevelopment())
-    await EnsureDevelopmentAdministratorAsync(app.Services);
+    await EnsureDevelopmentAccountsAsync(app.Services);
 
 app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
@@ -59,36 +61,56 @@ app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
-static async Task EnsureDevelopmentAdministratorAsync(IServiceProvider services)
+static async Task EnsureDevelopmentAccountsAsync(IServiceProvider services)
 {
-    const string email = "admin@pkvela.coop";
-    const string password = "Pkvela#Admin1";
-
     using var scope = services.CreateScope();
     var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var administrator = await users.FindByEmailAsync(email);
-    if (administrator is null)
+
+    await EnsureDevelopmentUserAsync(
+        users,
+        email: "admin@pkvela.coop",
+        password: "Pkvela#Admin1",
+        fullName: "Platform Administrator",
+        roleName: SystemRoles.PlatformAdmin);
+
+    await EnsureDevelopmentUserAsync(
+        users,
+        email: "member@pkvela.coop",
+        password: "Pkvela#Member1",
+        fullName: "Cooperative Member",
+        roleName: SystemRoles.User);
+}
+
+static async Task EnsureDevelopmentUserAsync(
+    UserManager<ApplicationUser> users,
+    string email,
+    string password,
+    string fullName,
+    string roleName)
+{
+    var account = await users.FindByEmailAsync(email);
+    if (account is null)
     {
-        administrator = new ApplicationUser
+        account = new ApplicationUser
         {
             UserName = email,
             Email = email,
-            FullName = "Platform Administrator",
+            FullName = fullName,
             EmailConfirmed = true,
             MustChangePassword = false
         };
-        var created = await users.CreateAsync(administrator, password);
+        var created = await users.CreateAsync(account, password);
         if (!created.Succeeded)
             throw new InvalidOperationException(string.Join(" ", created.Errors.Select(error => error.Description)));
     }
     else
     {
-        var resetToken = await users.GeneratePasswordResetTokenAsync(administrator);
-        var reset = await users.ResetPasswordAsync(administrator, resetToken, password);
+        var resetToken = await users.GeneratePasswordResetTokenAsync(account);
+        var reset = await users.ResetPasswordAsync(account, resetToken, password);
         if (!reset.Succeeded)
             throw new InvalidOperationException(string.Join(" ", reset.Errors.Select(error => error.Description)));
     }
 
-    if (!await users.IsInRoleAsync(administrator, SystemRoles.PlatformAdmin))
-        await users.AddToRoleAsync(administrator, SystemRoles.PlatformAdmin);
+    if (!await users.IsInRoleAsync(account, roleName))
+        await users.AddToRoleAsync(account, roleName);
 }

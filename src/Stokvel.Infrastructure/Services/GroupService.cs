@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Stokvel.Application.Common;
 using Stokvel.Application.Dtos;
 using Stokvel.Application.Services;
 using Stokvel.Domain;
 using Stokvel.Domain.Entities;
+using Stokvel.Infrastructure.Email;
 using Stokvel.Infrastructure.Identity;
 using Stokvel.Infrastructure.Persistence;
 
@@ -12,8 +15,22 @@ namespace Stokvel.Infrastructure.Services;
 
 public sealed class GroupService : AppServiceBase, IGroupService
 {
-    public GroupService(StokvelDbContext db, ICurrentUser current, UserManager<ApplicationUser> users)
-        : base(db, current, users) { }
+    private readonly IEmailSender? _emailSender;
+    private readonly IConfiguration? _config;
+    private readonly ILogger<GroupService>? _logger;
+
+    public GroupService(
+        StokvelDbContext db,
+        ICurrentUser current,
+        UserManager<ApplicationUser> users,
+        IEmailSender? emailSender = null,
+        IConfiguration? config = null,
+        ILogger<GroupService>? logger = null) : base(db, current, users)
+    {
+        _emailSender = emailSender;
+        _config = config;
+        _logger = logger;
+    }
 
     public async Task<GroupDetailDto> CreateAsync(CreateGroupRequest request, CancellationToken ct = default)
     {
@@ -170,7 +187,29 @@ public sealed class GroupService : AppServiceBase, IGroupService
 
         await AuditAsync("MEMBER_INVITED", $"{email} was invited to {group.Name}.", groupId, nameof(GroupInvitation), invite.Id, ct);
         await Db.SaveChangesAsync(ct);
-        return new InviteResultDto(email, invite.Token, invite.ExpiresAt);
+
+        var inviteUrl = $"{ResolveAppBaseUrl(request.ClientOrigin)}/invite?token={invite.Token}";
+        var emailSent = false;
+        var message = $"Invitation created for {email}.";
+        try
+        {
+            if (_emailSender is null)
+                throw new InvalidOperationException("Email sender is not available.");
+            await _emailSender.SendAsync(
+                email,
+                $"You are invited to join {group.Name} on pkvela",
+                InvitationEmail.BuildHtml(group.Name, inviteUrl),
+                ct);
+            emailSent = true;
+            message = $"An email was sent to {email} with a link to create a password and join {group.Name}.";
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Could not email invitation to {Email}", email);
+            message = $"Invitation was created, but the email to {email} could not be sent. Share this link instead: {inviteUrl}";
+        }
+
+        return new InviteResultDto(email, invite.Token, invite.ExpiresAt, emailSent, message);
     }
 
     public async Task<AuthResponse> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default)
@@ -400,6 +439,20 @@ public sealed class GroupService : AppServiceBase, IGroupService
             sum += l.TotalRepayable - paid;
         }
         return Money.Round(sum);
+    }
+
+    private string ResolveAppBaseUrl(string? clientOrigin)
+    {
+        var allowedOrigins = _config?.GetSection("Cors:Origins").Get<string[]>()
+                             ?? ["http://localhost:5173", "http://localhost:5174"];
+        var origin = clientOrigin?.Trim().TrimEnd('/');
+        if (!string.IsNullOrWhiteSpace(origin)
+            && allowedOrigins.Any(allowed => string.Equals(allowed.TrimEnd('/'), origin, StringComparison.OrdinalIgnoreCase)))
+        {
+            return origin;
+        }
+
+        return (_config?["Mail:AppBaseUrl"] ?? "http://localhost:5174").TrimEnd('/');
     }
 
     internal async Task<GroupFinancialSummaryDto> BuildFinancialsAsync(Guid groupId, CancellationToken ct)

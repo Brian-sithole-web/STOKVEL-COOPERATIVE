@@ -182,9 +182,9 @@ public sealed class AuthService : AppServiceBase, IAuthService
             throw new BusinessRuleException("INVITE_INVALID", "This invitation is no longer valid.");
 
         var user = await Users.FindByEmailAsync(invite.Email);
+        SetupService.ValidatePassword(request.Password);
         if (user is null)
         {
-            SetupService.ValidatePassword(request.Password);
             if (!await _roles.RoleExistsAsync(SystemRoles.User))
                 await _roles.CreateAsync(new ApplicationRole(SystemRoles.User));
             user = new ApplicationUser
@@ -200,9 +200,30 @@ public sealed class AuthService : AppServiceBase, IAuthService
                 throw new BusinessRuleException("IDENTITY", string.Join(" ", created.Errors.Select(e => e.Description)));
             await Users.AddToRoleAsync(user, SystemRoles.User);
         }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+                user.FullName = request.FullName.Trim();
+            var resetToken = await Users.GeneratePasswordResetTokenAsync(user);
+            var reset = await Users.ResetPasswordAsync(user, resetToken, request.Password);
+            if (!reset.Succeeded)
+                throw new BusinessRuleException("IDENTITY", string.Join(" ", reset.Errors.Select(e => e.Description)));
+            await Users.UpdateAsync(user);
+        }
 
         var groups = new GroupService(Db, Current, Users);
         await groups.JoinWithInviteTokenAsync(invite, user, ct);
         return await BuildAuthAsync(user, ct, _tokens);
+    }
+
+    public async Task<InvitePreviewDto> GetInvitePreviewAsync(string token, CancellationToken ct = default)
+    {
+        var invite = await Db.GroupInvitations.AsNoTracking().FirstOrDefaultAsync(row => row.Token == token, ct)
+                     ?? throw new NotFoundException("Invitation not found.");
+        if (invite.Status != InvitationStatus.Pending || invite.ExpiresAt < DateTime.UtcNow)
+            throw new BusinessRuleException("INVITE_INVALID", "This invitation is no longer valid.");
+        var group = await Db.StokvelGroups.AsNoTracking().FirstOrDefaultAsync(row => row.Id == invite.GroupId, ct)
+                    ?? throw new NotFoundException("Stokvel not found.");
+        return new InvitePreviewDto(invite.Email, group.Name, invite.ExpiresAt);
     }
 }

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Icon } from '@/components/ui/Icon'
 
-export function PasswordField({ value, onChange, autoComplete = 'current-password', required = true }) {
+export function PasswordField({ label = 'Password', value, onChange, autoComplete = 'current-password', required = true }) {
   const [visible, setVisible] = useState(false)
 
   return (
     <label className="auth-field">
-      Password
+      {label}
       <div className="auth-input-wrap">
         <span className="auth-input-icon"><Icon name="lock" size={16} /></span>
         <input

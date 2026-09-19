@@ -61,8 +61,9 @@ public record UpdateGroupRulesRequest(
     LoanApprovalWorkflow ApprovalWorkflow,
     decimal DefaultInterestRatePercent);
 
-public record InviteMemberRequest(string Email);
-public record InviteResultDto(string Email, string Token, DateTimeOffset ExpiresAt);
+public record InviteMemberRequest(string Email, string? ClientOrigin = null);
+public record InviteResultDto(string Email, string Token, DateTimeOffset ExpiresAt, bool EmailSent, string Message);
+public record InvitePreviewDto(string Email, string GroupName, DateTimeOffset ExpiresAt);
 
 public record AcceptInviteRequest(string Token, string FullName, string Password);
 

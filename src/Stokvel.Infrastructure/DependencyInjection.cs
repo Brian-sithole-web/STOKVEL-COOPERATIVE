@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Stokvel.Application.Common;
 using Stokvel.Application.Services;
 using Stokvel.Domain;
+using Stokvel.Infrastructure.Email;
 using Stokvel.Infrastructure.Identity;
 using Stokvel.Infrastructure.Persistence;
 using Stokvel.Infrastructure.Security;
@@ -33,6 +34,7 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddScoped<ISetupService, SetupService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGroupService, GroupService>();

@@ -213,6 +213,13 @@ a { color: inherit; }
   gap: 12px;
 }
 
+.auth-hint {
+  margin: -4px 0 0;
+  color: #6b6b6b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .auth-field {
   display: grid;
   gap: 6px;

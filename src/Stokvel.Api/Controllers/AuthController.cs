@@ -33,6 +33,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public Task<AuthResponse> Login(LoginRequest request, CancellationToken ct) => _auth.LoginAsync(request, ct);
 
+    [HttpGet("invite")]
+    public Task<InvitePreviewDto> InvitePreview([FromQuery] string token, CancellationToken ct) => _auth.GetInvitePreviewAsync(token, ct);
+
     [HttpPost("accept-invite")]
     public Task<AuthResponse> AcceptInvite(AcceptInviteRequest request, CancellationToken ct) => _auth.AcceptInviteAsync(request, ct);
 
