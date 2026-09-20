@@ -12,6 +12,7 @@ import Dashboard from '@/pages/dashboard/Dashboard'
 import { CreateGroupPage, GroupDetailPage, GroupsPage } from '@/pages/groups/GroupsPages'
 import MembersPage from '@/pages/members/MembersPage'
 import { ContributionsPage, InstalmentsPage, SavingsPage, TransactionsPage } from '@/pages/finance/FinancePages'
+import { BankChallengePage, CardCheckoutPage, FirstPaymentPage } from '@/pages/finance/PayPages'
 import { AllLoansPage, GroupLoansPage, MemberLoansPage } from '@/pages/loans/LoanPages'
 import { AuditPage, NotificationsPage, ReportsPage, SettingsPage } from '@/pages/portal/PortalPages'
 
@@ -33,6 +34,9 @@ export default function App() {
             <Route path="stokvels/:id" element={<GroupDetailPage />} />
             <Route path="members" element={<MembersPage />} />
             <Route path="contributions" element={<ContributionsPage />} />
+            <Route path="pay" element={<FirstPaymentPage />} />
+            <Route path="pay/:paymentId" element={<CardCheckoutPage />} />
+            <Route path="pay/:paymentId/bank" element={<BankChallengePage />} />
             <Route path="instalments" element={<InstalmentsPage />} />
             <Route path="savings" element={<SavingsPage />} />
             <Route path="group-loans" element={<GroupLoansPage />} />

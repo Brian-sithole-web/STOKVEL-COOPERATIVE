@@ -8,14 +8,21 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false)
   const [groupId, setGroupId] = useState(() => localStorage.getItem('stokvel.group') || '')
 
-  function applyAuth(auth) {
+  function applyAuth(auth, preferredGroupId) {
     setToken(auth.token)
     setUser(auth)
-    if (auth.memberships?.length && !groupId) {
-      const id = auth.memberships[0].groupId
+    const nextGroupId = preferredGroupId || (auth.memberships?.length && !groupId ? auth.memberships[0].groupId : groupId)
+    if (preferredGroupId || (auth.memberships?.length && !groupId)) {
+      const id = preferredGroupId || auth.memberships[0].groupId
       setGroupId(id)
       localStorage.setItem('stokvel.group', id)
     }
+    return nextGroupId
+  }
+
+  function unwrapJoin(result) {
+    if (result?.auth?.token) return result
+    return { auth: result, firstPayment: null }
   }
 
   useEffect(() => {
@@ -62,9 +69,14 @@ export function AuthProvider({ children }) {
       return auth
     },
     async acceptInvite(token, fullName, password) {
-      const auth = await api.post('/api/auth/accept-invite', { token, fullName, password })
-      applyAuth(auth)
-      return auth
+      const result = unwrapJoin(await api.post('/api/auth/accept-invite', { token, fullName, password }))
+      applyAuth(result.auth, result.firstPayment?.groupId)
+      return result
+    },
+    async acceptExistingInvite(invitationId) {
+      const result = unwrapJoin(await api.post(`/api/auth/invitations/${invitationId}/accept`))
+      applyAuth(result.auth, result.firstPayment?.groupId)
+      return result
     },
     async resetPassword(email, token, password) {
       const auth = await api.post('/api/auth/reset-password', { email, token, password })

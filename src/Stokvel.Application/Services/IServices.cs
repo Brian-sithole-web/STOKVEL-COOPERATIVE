@@ -16,10 +16,11 @@ public interface IAuthService
     Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<AuthResponse> MeAsync(CancellationToken ct = default);
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
-    Task<AuthResponse> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default);
+    Task<JoinInviteResult> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default);
     Task<InvitePreviewDto> GetInvitePreviewAsync(string token, CancellationToken ct = default);
     Task<ForgotPasswordResultDto> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default);
     Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default);
+    Task<JoinInviteResult> AcceptInviteForCurrentUserAsync(Guid invitationId, CancellationToken ct = default);
 }
 
 public interface IGroupService
@@ -44,8 +45,18 @@ public interface IContributionService
     Task GenerateMonthlyObligationsAsync(Guid groupId, int year, int month, CancellationToken ct = default);
     Task<ContributionDto> RecordAsync(Guid groupId, RecordContributionRequest request, CancellationToken ct = default);
     Task ConfirmAsync(Guid groupId, Guid contributionId, CancellationToken ct = default);
+    Task ConfirmFromGatewayAsync(Guid groupId, Guid contributionId, string paymentReference, CancellationToken ct = default);
     Task<IReadOnlyList<ContributionDto>> ListAsync(Guid groupId, CancellationToken ct = default);
     Task<IReadOnlyList<InstalmentDto>> ListInstalmentsAsync(Guid groupId, Guid? memberId, CancellationToken ct = default);
+}
+
+public interface ICardPaymentService
+{
+    Task<FirstPaymentDto> GetFirstPaymentAsync(Guid groupId, CancellationToken ct = default);
+    Task<CardPaymentDto> StartCheckoutAsync(Guid groupId, StartCardPaymentRequest request, CancellationToken ct = default);
+    Task<CardPaymentDto> GetAsync(Guid paymentId, CancellationToken ct = default);
+    Task<CardPaymentDto> BeginBankChallengeAsync(Guid paymentId, CancellationToken ct = default);
+    Task<CardPaymentDto> CompleteAsync(Guid paymentId, CompleteCardPaymentRequest request, CancellationToken ct = default);
 }
 
 public interface ILedgerService

@@ -184,10 +184,21 @@ public sealed class ContributionService : AppServiceBase, IContributionService
     public async Task ConfirmAsync(Guid groupId, Guid contributionId, CancellationToken ct = default)
     {
         await RequireGroupRoleAsync(groupId, ct, GroupRole.StokvelAdministrator, GroupRole.Treasurer);
+        await ConfirmCoreAsync(groupId, contributionId, null, ct);
+    }
+
+    public Task ConfirmFromGatewayAsync(Guid groupId, Guid contributionId, string paymentReference, CancellationToken ct = default) =>
+        ConfirmCoreAsync(groupId, contributionId, paymentReference, ct);
+
+    private async Task ConfirmCoreAsync(Guid groupId, Guid contributionId, string? paymentReference, CancellationToken ct)
+    {
         var contribution = await Db.Contributions.FirstOrDefaultAsync(c => c.Id == contributionId && c.GroupId == groupId, ct)
                            ?? throw new NotFoundException("Contribution not found.");
         if (contribution.Status == TransactionStatus.Confirmed)
             return;
+
+        if (!string.IsNullOrWhiteSpace(paymentReference))
+            contribution.PaymentReference = paymentReference;
 
         var group = await GetGroupAsync(groupId, ct);
         var type = contribution.Kind switch
@@ -229,10 +240,6 @@ public sealed class ContributionService : AppServiceBase, IContributionService
 
         if (contribution.Kind == ContributionKind.InitialDeposit)
         {
-            var confirmedInitial = await Db.Contributions
-                .Where(c => c.GroupId == groupId && c.Kind == ContributionKind.InitialDeposit && c.Status == TransactionStatus.Confirmed)
-                .SumAsync(c => c.Amount, ct);
-            confirmedInitial += contribution.Status == TransactionStatus.Confirmed ? 0 : contribution.Amount;
             var totalInitial = await Db.Contributions
                 .Where(c => c.GroupId == groupId && c.Kind == ContributionKind.InitialDeposit && (c.Status == TransactionStatus.Confirmed || c.Id == contribution.Id))
                 .SumAsync(c => c.Amount, ct);

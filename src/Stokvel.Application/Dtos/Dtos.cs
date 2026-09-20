@@ -69,7 +69,7 @@ public record UpdateGroupRulesRequest(
 
 public record InviteMemberRequest(string Email, string? ClientOrigin = null);
 public record InviteResultDto(string Email, string Token, DateTimeOffset ExpiresAt, bool EmailSent, string Message);
-public record InvitePreviewDto(string Email, string GroupName, DateTimeOffset ExpiresAt);
+public record InvitePreviewDto(string Email, string GroupName, DateTimeOffset ExpiresAt, Guid InvitationId);
 
 public record AcceptInviteRequest(string Token, string FullName, string Password);
 
@@ -317,7 +317,37 @@ public record NotificationDto(
     NotificationType Type,
     bool IsRead,
     DateTimeOffset CreatedAt,
-    Guid? GroupId);
+    Guid? GroupId,
+    Guid? InvitationId);
+
+public record JoinInviteResult(AuthResponse Auth, FirstPaymentDto FirstPayment);
+
+public record FirstPaymentDto(
+    Guid GroupId,
+    string GroupName,
+    Guid MemberId,
+    decimal InitialDepositAmount,
+    decimal MonthlyInstalmentAmount,
+    decimal SuggestedAmount,
+    ContributionKind SuggestedKind,
+    bool InitialDepositOutstanding);
+
+public record StartCardPaymentRequest(ContributionKind Kind, decimal Amount);
+
+public record CardPaymentDto(
+    Guid PaymentId,
+    Guid GroupId,
+    Guid ContributionId,
+    string GroupName,
+    decimal Amount,
+    ContributionKind Kind,
+    CardPaymentStatus Status,
+    string CheckoutPath,
+    string ChallengePath,
+    DateTimeOffset ExpiresAt,
+    string? IssuerName);
+
+public record CompleteCardPaymentRequest(bool Approved);
 
 public record AuditLogDto(
     Guid Id,

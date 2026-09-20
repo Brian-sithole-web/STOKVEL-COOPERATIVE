@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IContributionService, ContributionService>();
+        services.AddScoped<ICardPaymentService, CardPaymentService>();
         services.AddScoped<ILedgerService, LedgerService>();
         services.AddScoped<ILoanService, LoanService>();
         services.AddScoped<IDashboardService, DashboardService>();
@@ -57,6 +58,7 @@ public static class DependencyInjection
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<StokvelDbContext>();
         await db.Database.EnsureCreatedAsync();
+        await SchemaPatcher.ApplyAsync(db);
 
         var roles = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         foreach (var role in new[] { SystemRoles.PlatformAdmin, SystemRoles.User })

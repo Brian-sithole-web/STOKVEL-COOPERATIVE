@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuth } from '@/auth/AuthProvider'
 import { money, prettyDate, statusLabel } from '@/lib/format'
@@ -82,21 +83,54 @@ export function ReportsPage() {
 }
 
 export function NotificationsPage() {
+  const { acceptExistingInvite, selectGroup } = useAuth()
+  const navigate = useNavigate()
   const [rows, setRows] = useState([])
-  const load = () => api.get('/api/notifications').then(setRows)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState('')
+  const load = () => api.get('/api/notifications').then(setRows).catch((e) => setError(e.message))
   useEffect(() => { load() }, [])
+
+  async function acceptInvitation(notification) {
+    setError('')
+    setBusyId(notification.id)
+    try {
+      const result = await acceptExistingInvite(notification.invitationId)
+      if (result.firstPayment?.groupId) {
+        selectGroup(result.firstPayment.groupId)
+        navigate(`/pay?groupId=${result.firstPayment.groupId}`)
+      } else {
+        load()
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
   return (
     <section>
       <div className="page-head"><div><h1>Notifications</h1><p>Due dates, approvals and membership updates.</p></div></div>
+      {error && <div className="alert">{error}</div>}
       <div className="card">
         {rows.map((n) => (
-          <div key={n.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+          <div key={n.id} className="notification-row">
             <div>
               <strong>{n.title}</strong>
               <div className="muted">{n.message}</div>
               <small>{prettyDate(n.createdAt)}</small>
             </div>
-            {!n.isRead && <button className="btn-secondary" onClick={async () => { await api.post(`/api/notifications/${n.id}/read`, {}); load() }}>Mark read</button>}
+            <div className="notification-actions">
+              {n.type === 'Invitation' && n.invitationId && !n.isRead && (
+                <button className="btn" disabled={busyId === n.id} onClick={() => acceptInvitation(n)}>
+                  {busyId === n.id ? 'Joining…' : 'Accept invitation'}
+                </button>
+              )}
+              {!n.isRead && (
+                <button className="btn-secondary" onClick={async () => { await api.post(`/api/notifications/${n.id}/read`, {}); load() }}>Mark read</button>
+              )}
+            </div>
           </div>
         ))}
         {rows.length === 0 && <p className="muted">No notifications yet.</p>}

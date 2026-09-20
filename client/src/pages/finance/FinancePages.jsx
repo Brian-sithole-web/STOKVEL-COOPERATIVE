@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuth } from '@/auth/AuthProvider'
 import { money, prettyDate, statusLabel } from '@/lib/format'
@@ -38,8 +39,9 @@ export function ContributionsPage() {
       <div className="page-head">
         <div>
           <h1>Contributions</h1>
-          <p>Record initial deposits, monthly instalments and additional payments. Only confirmed transactions change the savings pool.</p>
+          <p>Record initial deposits, monthly instalments and additional payments. Card payments are confirmed only after the bank approves 3-D Secure.</p>
         </div>
+        <Link className="btn" to={`/pay?groupId=${groupId}`}>Pay with card</Link>
       </div>
       {error && <div className="alert">{error}</div>}
       <div className="split">

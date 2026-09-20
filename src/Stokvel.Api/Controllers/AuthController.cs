@@ -37,7 +37,12 @@ public class AuthController : ControllerBase
     public Task<InvitePreviewDto> InvitePreview([FromQuery] string token, CancellationToken ct) => _auth.GetInvitePreviewAsync(token, ct);
 
     [HttpPost("accept-invite")]
-    public Task<AuthResponse> AcceptInvite(AcceptInviteRequest request, CancellationToken ct) => _auth.AcceptInviteAsync(request, ct);
+    public Task<JoinInviteResult> AcceptInvite(AcceptInviteRequest request, CancellationToken ct) => _auth.AcceptInviteAsync(request, ct);
+
+    [Authorize]
+    [HttpPost("invitations/{invitationId:guid}/accept")]
+    public Task<JoinInviteResult> AcceptInviteForCurrentUser(Guid invitationId, CancellationToken ct) =>
+        _auth.AcceptInviteForCurrentUserAsync(invitationId, ct);
 
     [HttpPost("forgot-password")]
     public Task<ForgotPasswordResultDto> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct) =>

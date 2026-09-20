@@ -8,4 +8,5 @@ public class AppNotification : BaseEntity
     public string Message { get; set; } = string.Empty;
     public NotificationType Type { get; set; } = NotificationType.General;
     public bool IsRead { get; set; }
+    public Guid? InvitationId { get; set; }
 }

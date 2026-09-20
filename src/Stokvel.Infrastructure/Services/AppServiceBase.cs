@@ -95,7 +95,7 @@ public abstract class AppServiceBase
         await Task.CompletedTask;
     }
 
-    protected void Notify(Guid userId, string title, string message, NotificationType type, Guid? groupId = null)
+    protected void Notify(Guid userId, string title, string message, NotificationType type, Guid? groupId = null, Guid? invitationId = null)
     {
         Db.Notifications.Add(new AppNotification
         {
@@ -103,7 +103,8 @@ public abstract class AppServiceBase
             GroupId = groupId,
             Title = title,
             Message = message,
-            Type = type
+            Type = type,
+            InvitationId = invitationId
         });
     }
 

@@ -181,11 +181,30 @@ public sealed class NotificationService : AppServiceBase, INotificationService
 
     public async Task<IReadOnlyList<NotificationDto>> MineAsync(CancellationToken ct = default)
     {
-        return await Db.Notifications.Where(n => n.UserId == Current.UserId)
+        var rows = await Db.Notifications.Where(n => n.UserId == Current.UserId)
             .OrderByDescending(n => n.CreatedAt)
             .Take(100)
-            .Select(n => new NotificationDto(n.Id, n.Title, n.Message, n.Type, n.IsRead, n.CreatedAt, n.GroupId))
             .ToListAsync(ct);
+
+        var user = await Users.FindByIdAsync(Current.UserId.ToString());
+        var email = (user?.Email ?? Current.Email).Trim().ToLowerInvariant();
+        var backfilled = false;
+        foreach (var notification in rows.Where(n => n.Type == NotificationType.Invitation && n.InvitationId is null && n.GroupId.HasValue))
+        {
+            var invite = await Db.GroupInvitations
+                .Where(i => i.GroupId == notification.GroupId && i.Email == email && i.Status == InvitationStatus.Pending)
+                .OrderByDescending(i => i.CreatedAt)
+                .FirstOrDefaultAsync(ct);
+            if (invite is not null)
+            {
+                notification.InvitationId = invite.Id;
+                backfilled = true;
+            }
+        }
+        if (backfilled)
+            await Db.SaveChangesAsync(ct);
+
+        return rows.Select(n => new NotificationDto(n.Id, n.Title, n.Message, n.Type, n.IsRead, n.CreatedAt, n.GroupId, n.InvitationId)).ToList();
     }
 
     public async Task MarkReadAsync(Guid id, CancellationToken ct = default)

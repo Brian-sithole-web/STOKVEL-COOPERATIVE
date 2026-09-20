@@ -188,7 +188,7 @@ public sealed class AuthService : AppServiceBase, IAuthService
         await Users.UpdateAsync(user);
     }
 
-    public async Task<AuthResponse> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default)
+    public async Task<JoinInviteResult> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken ct = default)
     {
         var invite = await Db.GroupInvitations.FirstOrDefaultAsync(i => i.Token == request.Token, ct)
                      ?? throw new NotFoundException("Invitation not found.");
@@ -225,9 +225,60 @@ public sealed class AuthService : AppServiceBase, IAuthService
             await Users.UpdateAsync(user);
         }
 
+        return await CompleteInviteJoinAsync(invite, user, ct);
+    }
+
+    public async Task<JoinInviteResult> AcceptInviteForCurrentUserAsync(Guid invitationId, CancellationToken ct = default)
+    {
+        if (!Current.IsAuthenticated)
+            throw new ForbiddenException("Sign in to accept this invitation.");
+
+        var invite = await Db.GroupInvitations.FirstOrDefaultAsync(i => i.Id == invitationId, ct)
+                     ?? throw new NotFoundException("Invitation not found.");
+        if (invite.Status != InvitationStatus.Pending || invite.ExpiresAt < DateTime.UtcNow)
+            throw new BusinessRuleException("INVITE_INVALID", "This invitation is no longer valid.");
+
+        var user = await Users.FindByIdAsync(Current.UserId.ToString())
+                   ?? throw new ForbiddenException("Not authenticated.");
+        if (!string.Equals(user.Email?.Trim(), invite.Email.Trim(), StringComparison.OrdinalIgnoreCase))
+            throw new ForbiddenException("This invitation was sent to a different email address.");
+
+        return await CompleteInviteJoinAsync(invite, user, ct);
+    }
+
+    private async Task<JoinInviteResult> CompleteInviteJoinAsync(GroupInvitation invite, ApplicationUser user, CancellationToken ct)
+    {
         var groups = new GroupService(Db, Current, Users);
         await groups.JoinWithInviteTokenAsync(invite, user, ct);
-        return await BuildAuthAsync(user, ct, _tokens);
+
+        var related = await Db.Notifications
+            .Where(n => n.UserId == user.Id && n.Type == NotificationType.Invitation && n.GroupId == invite.GroupId)
+            .ToListAsync(ct);
+        foreach (var notification in related)
+        {
+            notification.IsRead = true;
+            notification.InvitationId ??= invite.Id;
+        }
+        await Db.SaveChangesAsync(ct);
+
+        var auth = await BuildAuthAsync(user, ct, _tokens);
+        var firstPayment = await BuildFirstPaymentAsync(invite.GroupId, user.Id, ct);
+        return new JoinInviteResult(auth, firstPayment);
+    }
+
+    private async Task<FirstPaymentDto> BuildFirstPaymentAsync(Guid groupId, Guid userId, CancellationToken ct)
+    {
+        var group = await Db.StokvelGroups.Include(g => g.Rule).FirstOrDefaultAsync(g => g.Id == groupId, ct)
+                    ?? throw new NotFoundException("Stokvel not found.");
+        var member = await Db.GroupMembers.FirstOrDefaultAsync(m => m.GroupId == groupId && m.UserId == userId, ct)
+                     ?? throw new NotFoundException("Membership was not created.");
+        var rule = group.Rule ?? throw new BusinessRuleException("RULE_MISSING", "Group rules are not configured.");
+        var paidInitial = await Db.Contributions.AnyAsync(
+            c => c.GroupId == groupId && c.MemberId == member.Id && c.Kind == ContributionKind.InitialDeposit && c.Status == TransactionStatus.Confirmed,
+            ct);
+        var kind = paidInitial ? ContributionKind.MonthlyInstalment : ContributionKind.InitialDeposit;
+        var amount = paidInitial ? rule.MonthlyInstalmentAmount : rule.InitialDepositAmount;
+        return new FirstPaymentDto(group.Id, group.Name, member.Id, rule.InitialDepositAmount, rule.MonthlyInstalmentAmount, amount, kind, !paidInitial);
     }
 
     public async Task<InvitePreviewDto> GetInvitePreviewAsync(string token, CancellationToken ct = default)
@@ -238,7 +289,7 @@ public sealed class AuthService : AppServiceBase, IAuthService
             throw new BusinessRuleException("INVITE_INVALID", "This invitation is no longer valid.");
         var group = await Db.StokvelGroups.AsNoTracking().FirstOrDefaultAsync(row => row.Id == invite.GroupId, ct)
                     ?? throw new NotFoundException("Stokvel not found.");
-        return new InvitePreviewDto(invite.Email, group.Name, invite.ExpiresAt);
+        return new InvitePreviewDto(invite.Email, group.Name, invite.ExpiresAt, invite.Id);
     }
 
     public async Task<ForgotPasswordResultDto> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default)

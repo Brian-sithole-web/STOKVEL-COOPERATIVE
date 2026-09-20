@@ -1,5 +1,5 @@
 const TOKEN = 'stokvel.token'
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || (import.meta.env.DEV ? 'http://localhost:5187' : '')
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || (import.meta.env.DEV ? 'http://localhost:5188' : '')
 
 export function getToken() {
   return localStorage.getItem(TOKEN)

@@ -183,7 +183,7 @@ public sealed class GroupService : AppServiceBase, IGroupService
 
         var existing = await Users.FindByEmailAsync(email);
         if (existing is not null)
-            Notify(existing.Id, "Stokvel invitation", $"You have been invited to join {group.Name}.", NotificationType.Invitation, groupId);
+            Notify(existing.Id, "Stokvel invitation", $"You have been invited to join {group.Name}.", NotificationType.Invitation, groupId, invite.Id);
 
         await AuditAsync("MEMBER_INVITED", $"{email} was invited to {group.Name}.", groupId, nameof(GroupInvitation), invite.Id, ct);
         await Db.SaveChangesAsync(ct);

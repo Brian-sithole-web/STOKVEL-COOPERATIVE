@@ -739,3 +739,49 @@ th { color: var(--muted); font-weight: 650; font-size: 11px; letter-spacing: .04
   .reports-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .health-stats { grid-template-columns: 1fr; }
 }
+
+.notification-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pay-page { max-width: 560px; }
+.pay-summary dl {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.pay-summary dt { color: var(--muted); font-size: 12px; }
+.pay-summary dd { margin: 0; font-weight: 700; }
+.pay-card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bank-phone { display: grid; place-items: center; padding: 12px 0 32px; }
+.bank-phone-bezel {
+  width: min(100%, 360px);
+  background: #10261c;
+  color: #f5f5f5;
+  border-radius: 28px;
+  padding: 28px 22px 24px;
+  box-shadow: 0 24px 50px rgba(16, 38, 28, 0.28);
+}
+.bank-app-kicker {
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: #c4a35a;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.bank-phone-bezel h2 { margin: 0 0 8px; font-size: 22px; }
+.bank-phone-bezel p { color: #d7ddd8; }
+.bank-amount { font-size: 28px; font-weight: 700; color: #fff; margin: 16px 0 8px; }
+.bank-actions { display: grid; gap: 8px; margin-top: 20px; }
+.bank-actions .btn { justify-content: center; }

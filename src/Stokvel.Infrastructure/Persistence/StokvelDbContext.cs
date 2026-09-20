@@ -26,6 +26,7 @@ public class StokvelDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
     public DbSet<MemberLoanApproval> MemberLoanApprovals => Set<MemberLoanApproval>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AppNotification> Notifications => Set<AppNotification>();
+    public DbSet<CardPaymentSession> CardPaymentSessions => Set<CardPaymentSession>();
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<PlatformSettings> PlatformSettings => Set<PlatformSettings>();
@@ -156,6 +157,14 @@ public class StokvelDbContext : IdentityDbContext<ApplicationUser, ApplicationRo
         builder.Entity<PlatformSettings>(e =>
         {
             e.Property(x => x.DefaultMaxGroupBorrowingPercent).HasPrecision(18, 2);
+        });
+
+        builder.Entity<CardPaymentSession>(e =>
+        {
+            e.HasIndex(x => x.ChallengeToken).IsUnique();
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.ChallengeToken).HasMaxLength(80).IsRequired();
+            e.Property(x => x.IssuerName).HasMaxLength(80);
         });
     }
 }

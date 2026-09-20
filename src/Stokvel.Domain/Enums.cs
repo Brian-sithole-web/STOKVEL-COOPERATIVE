@@ -103,6 +103,15 @@ public enum PaymentMethod
     Other = 3
 }
 
+public enum CardPaymentStatus
+{
+    Created = 0,
+    AwaitingBank = 1,
+    Succeeded = 2,
+    Failed = 3,
+    Expired = 4
+}
+
 public enum LoanStatus
 {
     Draft = 0,

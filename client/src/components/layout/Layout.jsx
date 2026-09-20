@@ -38,6 +38,7 @@ export default function Layout() {
     ['/', 'Dashboard', 'dashboard'],
     ['/stokvels', 'My Stokvels', 'users'],
     ['/contributions', 'My contributions', 'deposit'],
+    ['/pay', 'Pay with card', 'deposit'],
     ['/instalments', 'My instalments', 'calendar'],
     ['/member-loans', 'My loans', 'wallet'],
     ['/transactions', 'My transactions', 'loans'],
